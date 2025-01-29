@@ -43,3 +43,65 @@
 
 # 5. Після виконання програми всі файли у вихідній директорії рекурсивно скопійовано в нову директорію та 
 # розсортовано в піддиректорії за їх розширенням.
+
+import os
+from pathlib import Path
+import argparse
+import shutil
+
+
+def parse_folder(source, dist):
+    try:
+        for element in source.iterdir():
+            if element.is_dir():
+                print(f"Parse folder: {element.name}")
+                parse_folder(element, dist)
+            if element.is_file():
+                # Get file extension (without the dot)
+                file_extension = element.suffix.lstrip(".") or "no_extension"
+
+                # Define the destination subdirectory based on the extension
+                destination_subdir = dist / file_extension
+
+                # Ensure the subdirectory exists
+                destination_subdir.mkdir(parents=True, exist_ok=True)
+
+                # Define the destination file path
+                destination_file = destination_subdir / element.name
+
+                # Check if the file already exists
+                if not destination_file.exists():
+                    shutil.copy(element, destination_file)
+                    print(f"Copied {element.name} to {destination_subdir}")
+                else:
+                    print(f"File {element.name} already exists in {destination_subdir}, skipping copy.")
+    except PermissionError:
+        print(f"🚫 Permission denied: Unable to access '{source}' or '{dist}'.")
+
+    except FileNotFoundError:
+        print(f"❌ Error: The source file '{source}' was not found.")
+
+    except OSError as e:
+        print(f"⚠️ OS Error: {e}")
+
+    except Exception as e:
+        print(f"🔥 Unexpected error: {e}")
+        
+
+def main(): #  command line example: python task1.py --source . --dist new_dist
+    parser = argparse.ArgumentParser(description='Copying files sorted by extentions')
+    parser.add_argument("--source", type=Path, required=True, help="Path to source folder")
+    parser.add_argument("--dist", type=Path, default=Path('dist'), help="Path to dist folder")
+    args = parser.parse_args()
+
+    if os.path.exists(args.source):
+        if not os.path.exists(args.dist):
+            os.mkdir(args.dist)
+
+        parse_folder(args.source, args.dist)        
+    else:
+        print("Please try with another valid path")
+
+
+if __name__ == "__main__":
+    main()
