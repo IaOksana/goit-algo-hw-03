@@ -9,16 +9,13 @@
 import turtle
 
 def koch_curve(t, order, size):
-    try:
-        # Recursively draws a Koch curve.
-        if order == 0:
-            t.forward(size)
-        else:
-            for angle in [60, -120, 60, 0]:
-                koch_curve(t, order - 1, size / 3)
-                t.left(angle)
-    except:
-        print("Unexpected error")
+    # Recursively draws a Koch curve.
+    if order == 0:
+        t.forward(size)
+    else:
+        for angle in [60, -120, 60, 0]:
+            koch_curve(t, order - 1, size / 3)
+            t.left(angle)
 
 
 def draw_koch_snowflake(order, size=300):
@@ -32,11 +29,17 @@ def draw_koch_snowflake(order, size=300):
     t.goto(-size / 2, size / (2 * 3 ** 0.5))
     t.pendown()
 
-    for _ in range(3):  # Draw three Koch curves to form a snowflake
-        koch_curve(t, order, size)
-        t.right(120)
+    try:
+        for _ in range(3):  # Draw three Koch curves to form a snowflake
+            koch_curve(t, order, size)
+            t.right(120)
+    except turtle.Terminator:  # Handle window closing
+        print("Window closed during drawing.")
+    except RecursionError:
+        print("❌ Recursion depth exceeded! Try a lower order.")
+    finally:
+        return
 
-    window.listen()  # Enables listening for key events
     turtle.mainloop()
 
 
@@ -51,9 +54,11 @@ def main():
 
         try:
             order = int(user_input)
-            draw_koch_snowflake(order)
-            print("Goodbye!")
-            return
+            if 0 <= order <= 5:
+                draw_koch_snowflake(order)
+                return
+            else:
+                print("❌ Order must be between 0 and 5.")
         except ValueError:
             print("❌ Invalid input! Please enter a valid integer or type 'q' to quit.")
 
